@@ -120,6 +120,13 @@ const Index = () => {
         )}
       </div>
 
+      {/* Weather Widget */}
+      {currentDestination && messages.length > 0 && (
+        <div className="px-4 pb-2">
+          <WeatherWidget destination={currentDestination} />
+        </div>
+      )}
+
       {/* Input */}
       <ChatInput onSend={send} disabled={isLoading} />
     </div>
