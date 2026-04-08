@@ -1,8 +1,10 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Plane, Globe, Cloud, Hotel } from "lucide-react";
 import ChatMessage from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
+import WeatherWidget from "@/components/WeatherWidget";
 import { streamChat, type Msg } from "@/lib/streamChat";
+import { extractDestination } from "@/lib/weatherApi";
 import { useToast } from "@/hooks/use-toast";
 
 const SUGGESTIONS = [
