@@ -1,8 +1,10 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Plane, Globe, Cloud, Hotel } from "lucide-react";
 import ChatMessage from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
+import WeatherWidget from "@/components/WeatherWidget";
 import { streamChat, type Msg } from "@/lib/streamChat";
+import { extractDestination } from "@/lib/weatherApi";
 import { useToast } from "@/hooks/use-toast";
 
 const SUGGESTIONS = [
@@ -17,6 +19,17 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Extract the latest destination from user messages
+  const currentDestination = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === "user") {
+        const dest = extractDestination(messages[i].content);
+        if (dest) return dest;
+      }
+    }
+    return null;
+  }, [messages]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -106,6 +119,13 @@ const Index = () => {
           </div>
         )}
       </div>
+
+      {/* Weather Widget */}
+      {currentDestination && messages.length > 0 && (
+        <div className="px-4 pb-2">
+          <WeatherWidget destination={currentDestination} />
+        </div>
+      )}
 
       {/* Input */}
       <ChatInput onSend={send} disabled={isLoading} />
