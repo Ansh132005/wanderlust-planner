@@ -20,6 +20,17 @@ const Index = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  // Extract the latest destination from user messages
+  const currentDestination = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === "user") {
+        const dest = extractDestination(messages[i].content);
+        if (dest) return dest;
+      }
+    }
+    return null;
+  }, [messages]);
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
