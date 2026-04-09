@@ -95,8 +95,10 @@ export function extractDestination(text: string): string | null {
   for (const pattern of DESTINATION_PATTERNS) {
     const match = text.match(pattern);
     if (match?.[1]) {
-      // Clean trailing common words
-      return match[1].replace(/\b(next|this|in|the|for|and|with)\s*$/i, "").trim();
+      // Clean trailing common words (repeatedly)
+      let cleaned = match[1].trim();
+      cleaned = cleaned.replace(/\b(next|this|in|the|for|and|with|week|month|year|today|tomorrow|soon)\b.*$/i, "").trim();
+      if (cleaned.length >= 2) return cleaned;
     }
   }
   return null;
