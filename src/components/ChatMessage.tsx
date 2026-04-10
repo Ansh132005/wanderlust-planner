@@ -1,4 +1,5 @@
 import { Plane, User } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import type { Msg } from "@/lib/streamChat";
 
 interface ChatMessageProps {
@@ -18,13 +19,13 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
         {isUser ? <User className="w-4 h-4" /> : <Plane className="w-4 h-4" />}
       </div>
       <div
-        className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
+        className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
           isUser
-            ? "bg-primary text-primary-foreground rounded-br-md"
-            : "bg-card text-card-foreground border border-border rounded-bl-md shadow-sm"
+            ? "bg-primary text-primary-foreground rounded-br-md whitespace-pre-wrap"
+            : "bg-card text-card-foreground border border-border rounded-bl-md shadow-sm prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2 prose-headings:text-card-foreground"
         }`}
       >
-        {message.content}
+        {isUser ? message.content : <ReactMarkdown>{message.content}</ReactMarkdown>}
       </div>
     </div>
   );
