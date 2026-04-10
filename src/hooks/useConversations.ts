@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import type { Msg } from "@/lib/streamChat";
 
 export interface Conversation {
@@ -34,63 +34,59 @@ function generateTitle(messages: Msg[]): string {
 export function useConversations() {
   const [conversations, setConversations] = useState<Conversation[]>(loadConversations);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const activeIdRef = useRef<string | null>(null);
 
   const activeConversation = conversations.find((c) => c.id === activeId) ?? null;
 
-  const persist = useCallback((updated: Conversation[]) => {
-    const sorted = [...updated].sort((a, b) => b.updatedAt - a.updatedAt);
-    setConversations(sorted);
-    saveConversations(sorted);
-  }, []);
-
   const newChat = useCallback(() => {
+    activeIdRef.current = null;
     setActiveId(null);
   }, []);
 
-  const updateMessages = useCallback(
-    (messages: Msg[]) => {
-      setConversations((prev) => {
-        if (activeId) {
-          const updated = prev.map((c) =>
-            c.id === activeId
-              ? { ...c, messages, title: generateTitle(messages), updatedAt: Date.now() }
-              : c
-          );
-          saveConversations(updated);
-          return updated;
-        }
-        // Create new conversation
-        const id = crypto.randomUUID();
-        const convo: Conversation = {
-          id,
-          title: generateTitle(messages),
-          messages,
-          updatedAt: Date.now(),
-        };
-        const updated = [convo, ...prev];
+  const updateMessages = useCallback((messages: Msg[]) => {
+    setConversations((prev) => {
+      const currentId = activeIdRef.current;
+      if (currentId) {
+        const updated = prev.map((c) =>
+          c.id === currentId
+            ? { ...c, messages, title: generateTitle(messages), updatedAt: Date.now() }
+            : c
+        );
         saveConversations(updated);
-        setActiveId(id);
         return updated;
-      });
-    },
-    [activeId]
-  );
+      }
+      // Create new conversation only once
+      const id = crypto.randomUUID();
+      activeIdRef.current = id;
+      setActiveId(id);
+      const convo: Conversation = {
+        id,
+        title: generateTitle(messages),
+        messages,
+        updatedAt: Date.now(),
+      };
+      const updated = [convo, ...prev];
+      saveConversations(updated);
+      return updated;
+    });
+  }, []);
 
   const selectConversation = useCallback((id: string) => {
+    activeIdRef.current = id;
     setActiveId(id);
   }, []);
 
-  const deleteConversation = useCallback(
-    (id: string) => {
-      setConversations((prev) => {
-        const updated = prev.filter((c) => c.id !== id);
-        saveConversations(updated);
-        if (activeId === id) setActiveId(null);
-        return updated;
-      });
-    },
-    [activeId]
-  );
+  const deleteConversation = useCallback((id: string) => {
+    setConversations((prev) => {
+      const updated = prev.filter((c) => c.id !== id);
+      saveConversations(updated);
+      if (activeIdRef.current === id) {
+        activeIdRef.current = null;
+        setActiveId(null);
+      }
+      return updated;
+    });
+  }, []);
 
   return {
     conversations,
